@@ -1,0 +1,38 @@
+name: bwapp
+
+services:
+  web:
+    build: .
+    platform: linux/amd64
+    container_name: bwapp
+    ports:
+      - "127.0.0.1:8090:80"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: bug
+    volumes:
+      - ./bWAPP:/var/www/html/bWAPP
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mariadb:10.6
+    container_name: bwapp-db
+    environment:
+      MARIADB_ROOT_PASSWORD: bug
+      MARIADB_ROOT_HOST: "%"
+    volumes:
+      - bwapp-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  bwapp-db:
