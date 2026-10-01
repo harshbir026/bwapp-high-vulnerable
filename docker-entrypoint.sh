@@ -28,18 +28,8 @@ GRANT ALL PRIVILEGES ON *.* TO 'bwapp'@'127.0.0.1' IDENTIFIED BY 'bug' WITH GRAN
 FLUSH PRIVILEGES;
 SQL
 
-apachectl start
-
-for _ in $(seq 1 30); do
-    if curl -fsS "http://127.0.0.1:${PORT}/login.php" >/dev/null 2>&1; then
-        break
-    fi
-    sleep 1
-done
-
 if ! mysql --protocol=tcp -h 127.0.0.1 -u bwapp -pbug -Nse "SHOW DATABASES LIKE 'bWAPP'" | grep -q bWAPP; then
-    curl -fsS "http://127.0.0.1:${PORT}/install.php?install=yes" >/tmp/bwapp-install.html
+    php -r '$_REQUEST["install"]="yes"; include "/var/www/html/install.php";' >/tmp/bwapp-install.html
 fi
 
-apachectl stop
 exec apachectl -D FOREGROUND
